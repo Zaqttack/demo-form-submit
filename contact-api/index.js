@@ -10,6 +10,16 @@ app.use(express.json());
 app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
   try {
+    const token = req.body.captchaToken;
+    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${token}`;
+
+    const captchaRes = await fetch(verifyUrl, { method: 'POST' });
+    const captchaData = await captchaRes.json();
+
+    if (!captchaData.success || captchaData.score < 0.5) {
+      return res.status(400).send('reCAPTCHA failed');
+    }
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
