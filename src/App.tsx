@@ -70,7 +70,7 @@ const App: React.FC = () => {
             rows={4}
           />
           <ReCAPTCHA
-            sitekey="6LeuxokrAAAAAEMpSHjClG0HbuzwALM2-LEFOK0h"
+            sitekey="6LeuxokrAAAAAMRaogDjMi4b2Jf8-SpUKU82WOwh"
             onChange={(token: string | null) => {
               if (token) setCaptchaToken(token);
             }}
