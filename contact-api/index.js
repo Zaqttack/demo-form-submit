@@ -19,10 +19,11 @@ app.post('/contact', async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: email,
+      from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
       subject: `Contact from ${name}`,
       text: message,
+      replyTo: email
     });
 
     res.send('Message sent successfully!');

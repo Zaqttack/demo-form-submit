@@ -12,12 +12,14 @@ function App() {
   const handleSubmit = async e => {
     e.preventDefault();
     setStatus('Sending...');
+    console.log("Form data:", formData);
     try {
-      const response = await fetch('https://demo-form-submit.onrender.com', {
+      const response = await fetch('https://demo-form-submit.onrender.com/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+      
       const result = await response.text();
       setStatus(result);
     } catch (err) {
