@@ -3,36 +3,59 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const fetch = require('node-fetch'); // if not globally available
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Rate limiter middleware for contact form
-// TODO: consider environments (i.e. development vs production)
+// ⏱ Rate limiting
 const contactLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
-  message: 'Too many submissions from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+  windowMs: 15 * 60 * 1000, // 15 min window
+  max: 5,
+  message: 'Too many contact form submissions. Try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-app.post('/contact', contactLimiter, async (req, res) => {
-  const { name, email, message } = req.body;
-  try {
-    // captcha verification
-    const token = req.body.captchaToken;
-    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${token}`;
+let failureCache = {}; // simple in-memory tracking
 
+// 📩 Contact endpoint
+app.post('/contact', contactLimiter, async (req, res) => {
+  const { name, email, message, honeypot, captchaToken } = req.body;
+
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  const userAgent = req.headers['user-agent'];
+
+  console.log(`[${new Date().toISOString()}] Request from IP ${ip} | UA: ${userAgent}`);
+
+  // 🐝 Honeypot detection
+  if (honeypot && honeypot.trim() !== '') {
+    console.warn('Honeypot field filled. Possible bot.');
+    return res.status(400).send('Bot detected.');
+  }
+
+  // ❄️ Cooldown logic
+  if (failureCache[ip] && failureCache[ip].count >= 3 && Date.now() - failureCache[ip].last < 5 * 60 * 1000) {
+    return res.status(429).send('Too many failed attempts. Please wait a few minutes.');
+  }
+
+  try {
+    // ✅ Verify reCAPTCHA
+    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${captchaToken}`;
     const captchaRes = await fetch(verifyUrl, { method: 'POST' });
     const captchaData = await captchaRes.json();
 
-    if (!captchaData.success) {
+    if (!captchaData.success || (captchaData.score !== undefined && captchaData.score < 0.5)) {
+      console.warn(`Captcha failed for IP ${ip}`);
+      failureCache[ip] = {
+        count: (failureCache[ip]?.count || 0) + 1,
+        last: Date.now(),
+      };
       return res.status(400).send('reCAPTCHA failed');
     }
 
-    // Send Email
+    // 📤 Send email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -46,12 +69,15 @@ app.post('/contact', contactLimiter, async (req, res) => {
       to: process.env.EMAIL_USER,
       subject: `Contact from ${name}`,
       text: message,
-      replyTo: email
+      replyTo: email,
     });
+
+    // ✅ Clear failures on success
+    delete failureCache[ip];
 
     res.send('Message sent successfully!');
   } catch (error) {
-    console.error(error);
+    console.error('Unexpected error:', error);
     res.status(500).send('Failed to send message.');
   }
 });

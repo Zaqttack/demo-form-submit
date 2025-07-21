@@ -5,10 +5,11 @@ interface FormData {
   name: string;
   email: string;
   message: string;
+  honeypot?: string; // Honeypot field for spam prevention
 }
 
 const App: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState<FormData>({ name: '', email: '', message: '', honeypot: '' });
   const [captchaToken, setCaptchaToken] = useState<string>('');
   const [status, setStatus] = useState<string>('');
 
@@ -68,6 +69,13 @@ const App: React.FC = () => {
             value={formData.message}
             required
             rows={4}
+          />
+          <input
+            type="text"
+            name="honeypot"
+            onChange={handleChange}
+            style={{ display: 'none' }}
+            tabIndex={-1}
           />
           <ReCAPTCHA
             sitekey="6LeuxokrAAAAAMRaogDjMi4b2Jf8-SpUKU82WOwh"
