@@ -16,11 +16,11 @@ app.post('/contact', async (req, res) => {
     const captchaRes = await fetch(verifyUrl, { method: 'POST' });
     const captchaData = await captchaRes.json();
 
+    console.log('reCAPTCHA verification:', captchaData);
     if (!captchaData.success) {
       return res.status(400).send('reCAPTCHA failed');
     }
 
-    console.log('reCAPTCHA verification:', captchaData);
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
