@@ -27,7 +27,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const res = await fetch('https://your-backend.onrender.com/contact', {
+      const res = await fetch('https://demo-form-submit.onrender.com/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, captchaToken }),
