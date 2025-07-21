@@ -3,7 +3,6 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const fetch = require('node-fetch'); // if not globally available
 
 const app = express();
 app.use(cors());
