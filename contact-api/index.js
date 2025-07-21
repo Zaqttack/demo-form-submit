@@ -16,7 +16,7 @@ app.post('/contact', async (req, res) => {
     const captchaRes = await fetch(verifyUrl, { method: 'POST' });
     const captchaData = await captchaRes.json();
 
-    if (!captchaData.success || captchaData.score < 0.5) {
+    if (!captchaData.success) {
       return res.status(400).send('reCAPTCHA failed');
     }
 
