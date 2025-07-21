@@ -11,6 +11,7 @@ app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
   try {
     const token = req.body.captchaToken;
+    console.log('Received captchaToken:', token);
     const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${token}`;
 
     const captchaRes = await fetch(verifyUrl, { method: 'POST' });
