@@ -20,6 +20,8 @@ app.post('/contact', async (req, res) => {
       return res.status(400).send('reCAPTCHA failed');
     }
 
+    console.log('reCAPTCHA verification:', captchaData);
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
