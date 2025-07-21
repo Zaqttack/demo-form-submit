@@ -21,16 +21,16 @@ app.post('/contact', async (req, res) => {
     await transporter.sendMail({
       from: email,
       to: process.env.EMAIL_USER,
-      subject: `New Contact Form Submission`,
-      text: `From: ${name} <${email}>\n\n${message}`,
+      subject: `Contact from ${name}`,
+      text: message,
     });
 
     res.send('Message sent successfully!');
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     res.status(500).send('Failed to send message.');
   }
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
